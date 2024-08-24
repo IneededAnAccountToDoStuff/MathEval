@@ -1,6 +1,6 @@
 # MathEval
 It's a safe math parser for Python &amp; Javascript. Nothing more.
-It parses math expressions, without the danger of stuff like `eval`. It supports functions, constants… [(listed below)](#Features-&-Usage)
+It parses math expressions, without the danger of stuff like `eval`. It supports functions, constants… [(listed below)](#features--usage)
 
 ## How can it be safe?
 The engine does not rely on `eval` functionality at all. It is a custom parser.
