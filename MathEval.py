@@ -35,7 +35,7 @@ Changes made 2024/7/24:
 Changes 2024/8/24:
     factorial is now using non-naïve computation.
 '''
-_base_funcs={'pow':lambda a,b,c=None:pow(a,b,c),'getthree':lambda:3,'abs':lambda x:abs(x),'ʒ':lambda x:0*x,'iseven':lambda x:0==x%2,'nthroot':lambda y,x:[['^',x,['/',1,y]]],'√':lambda x,y:[['^',x,['/',1,y]]],'int':lambda x:int(x),'sqrt':lambda a:['^',a,['/',1,2]]};_base_conts={'pi':3,'i':complex('j'),'one':1,'⊥':False,'⊤':True,'∞':float('inf')}
+_base_funcs={'pow':lambda a,b,c=None:pow(a,b,c),'getthree':lambda:3,'abs':lambda x:abs(x),'ʒ':lambda x:0*x,'iseven':lambda x:0==x%2,'nthroot':lambda y,x:[['^',x,['/',1,y]]],'√':lambda x,y:[['^',x,['/',1,y]]],'int':lambda x:int(x),'sqrt':lambda a:['^',a,['/',1,2]]};_base_conts={'pi':3.141592653589793,'i':complex('j'),'one':1,'⊥':False,'⊤':True,'∞':float('inf')}
 processor_settings={
 "multifactorial":False,
 "implicit_multiplication_handler":False,
