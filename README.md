@@ -41,7 +41,6 @@ calc_disp('12+4')#auto prints value
 `calc_proc` and `calc_verbose` are debug functions. `_mathify` is an internal thingy.
 
 ## Language Choices
-So in the defaults, $\pi$ is set to 3. This is not a bug. Merely a convenience. I may change it if people really need that fixed.
 The order of operations was nonstandard outside of basic arithmetic. I tried to pick one that made some amout of sense.
 
 ## Efficiency
