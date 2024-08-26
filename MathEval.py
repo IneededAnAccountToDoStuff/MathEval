@@ -35,7 +35,7 @@ Changes made 2024/7/24:
 Changes 2024/8/24:
     factorial is now using non-naïve computation.
 '''
-_base_funcs={'pow':lambda a,b,c=None:pow(a,b,c),'getthree':lambda:3,'abs':lambda x:abs(x),'ʒ':lambda x:0*x,'iseven':lambda x:0==x%2,'nthroot':lambda y,x:[['^',x,['/',1,y]]],'√':lambda x,y:[['^',x,['/',1,y]]],'int':lambda x:int(x),'sqrt':lambda a:['^',a,['/',1,2]]};_base_conts={'pi':3.141592653589793,'i':complex('j'),'one':1,'⊥':False,'⊤':True,'∞':float('inf')}
+_base_funcs={'pow':lambda a,b,c=None:pow(a,b,c),'getthree':lambda:3,'abs':lambda x:abs(x),'ʒ':lambda x:0*x,'iseven':lambda x:0==x%2,'nthroot':lambda y,x:[['^',x,['/',1,y]]],'√':lambda x,y:[['^',x,['/',1,y]]],'int':lambda x:int(x),'sqrt':lambda a:['^',a,['/',1,2]]};_base_conts={'pi':3,'i':complex('j'),'one':1,'⊥':False,'⊤':True,'∞':float('inf')}
 processor_settings={
 "multifactorial":False,
 "implicit_multiplication_handler":False,
@@ -43,7 +43,7 @@ processor_settings={
 }
 def implicit_multiplication_handler(string:str)->str:from re import sub;return sub('\\)([^+^%!+‼¬*{}/≥≤≠,=><()⌊⌋⌈⌉-]+)',')*\\1',sub('([0-9)])\\(','\\1*(',sub('([0-9]+)([^0-9+^%!+‼¬*{}/≥≤≠,=><()⌊⌋⌈⌉-]+)','(\\1*\\2)',string)))
 def _tokenize(string:str,_log=0,processor_settings=processor_settings)->list:
-    _log('Tokenizing "{}"\nFiltering',string)if _log else None;string=string.replace(' ','').replace('**','^').replace('⋅','*').replace('!=','≠').replace('÷','/').replace('>=','≥').replace('<=','≤').replace('mod','%').replace('‼','!!')
+    _log('Tokenizing "{}"\nFiltering',string)if _log else None;string=string.replace(' ','').replace('‼','!!')
     while"--"in string:string=string.replace('--','+')
     while"++"in string:string=string.replace('++','+')
     while"+-"in string:string=string.replace('+-','-')
@@ -57,7 +57,7 @@ def _tokenize(string:str,_log=0,processor_settings=processor_settings)->list:
     _log('log info filter +/- result {}',string)if _log else None;par_expr=[];j=0
     operators=[
         (-1,
-            (('^','^'),1,-1)
+            (('**','^'),('^','^'),1,-1)
         ),
         (1,
             (('%','percent'),('!','!'),-1,1.0)
@@ -72,13 +72,13 @@ def _tokenize(string:str,_log=0,processor_settings=processor_settings)->list:
             (('!','derange'),('¬','¬'),1,-1.0)
         ),
         (1,
-            (('*','*'),('/','/'),('%','mod'),1,-1)
+            (('⋅','*'),('*','*'),('/','/'),('÷','/'),('mod','mod'),('%','mod'),1,-1)
         ),
         (1,
             (('+','+'),('-','-'),1,-1)
         ),
         (1,
-            (('≥','≥'),('≤','≤'),('≠','≠'),('=','='),('>','>'),('<','<'),1,-1)
+            (('≥','≥'),('>=','≥'),('≤','≤'),('<=','≤'),('≠','≠'),('!=','≠'),('=','='),('>','>'),('<','<'),1,-1)
         ),
     ]
     brackets=(
@@ -118,17 +118,24 @@ def _tokenize(string:str,_log=0,processor_settings=processor_settings)->list:
         d=[];_log('Scanning brackets')if _log else None;matches=[[(string[i:i+c],string[i+c+1:v-1])if c else(string[i+1:v-1]if d is None else(d,string[i+1:v-1]))]for c,i,v,d in matches];_log('Creating bracket nodes',level)if _log else None
         for l,i in enumerate(matches):
             if i[0]in nodes:matches[l]=nodes[i[0]];_log('grabbing preexisting data ref for {}',i)if _log else None
-            else:nodes[i[0]]=i;current.append(i[0]);_log('appending node {}',i)if _log else None
+            else:print(len(i));nodes[i[0]]=i;current.append(i[0]);_log('appending node {}',i)if _log else None
         _log('re-integrating brackets and (other) stuff')if _log else None
         for i,v in zip(res,matches):d.extend((i,v))
         if len(res)>len(matches):d.append(res[-1])
         d=[i for i in d if''!=i];c=[];_log('splitting operators in {}',d)if _log else None
         for i in d:
             if isinstance(i,str):
-                cc=[]
-                for j in i:
-                    if j in r_oper:c.append(''.join(cc));_log('Operator {} detected in {}: front part is {}',j,i,cc)if _log else None;c.append(j);cc.clear()
-                    else:cc.append(j)
+                cc=[];sein=0;sele=len(i)
+                while sein<sele:
+                    j=i[sein];nom=0;possiblematches=[i for i in r_oper if i.startswith(j)]
+                    if possiblematches:
+                        possiblematches.sort(key=lambda a:len(a),reverse=1)
+                        for pos in possiblematches:
+                            if i[sein:sein+len(pos)]==pos:c.append(''.join(cc));sein+=len(pos)-1;_log('Operator {} detected in {}: front part is {}',pos,i,cc)if _log else None;c.append(pos);cc.clear();break
+                        else:nom=1
+                    else:nom=1
+                    sein+=1
+                    if nom:cc.append(j)
                 c.append(''.join(cc))
             else:c.append(i)
         x=[i for i in c if''!=i];_log('tree branching by operators in {}',x)if _log else None
@@ -164,6 +171,7 @@ def _tokenize(string:str,_log=0,processor_settings=processor_settings)->list:
     while 1==len(nodes)and isinstance(nodes[0],list):nodes=nodes[0]
     return nodes
 #TODO: proper math parser char by char
+#   .replace('**','^')
 
 def _untokenize(tokens)->str:
     #print(tokens)
@@ -325,7 +333,7 @@ def sympymode():
         return v
 #TODO: primorial?
 
-examples={'1+2+3+4':10,'8/4':2,'1+2+3+4/(3+1)':7,'3/(4-1)+3/(3)':2,'(3)':3,'((2))':2,'(3+2)':5,'2%':2/100,'⌊2⌋':2,"⌊2.5⌋":2,'⌈2⌉':2,"⌈2.5⌉":3,'pi':3,'∞+2':float('inf'),'∞':float('inf'),'-2':-2,'-∞':-float('inf'),'(pi)':3,'abs(-4+0)-abs(4)':0,'abs(4)':4,'abs(-4)':4,'((5))':5,'12+4':16,'12*(3-(1+1)+4)':60,'12+4.5':16.5,'12+(-4)^0.5':12+2j,'12+(-3)^0.5':12+1.7320508075688772j,'!5':44,'5++2':7,'5--2':7,'5+-2':3,'5-+2':3,'12/4':3.0,'5/3':5/3,'3^2^3':6561,'5!':120,'5-4':1,'3.4':3.4,'100%7':100%7,'nthroot(4,6561)':9.0,'abs(4-abs(3+2))':1,'4=4':True,'1=2':False,'1>2':False,'1<2':True,'2≥2':True,'2≤2':True,'2>2':False,'2<2':False,'2≠2':False,'2≠3':True,'3+'*10+'3':33,'3+'*100+'3':303,'3+'*200+'3':603,'3+'*141+'3':426,'3+'*1000+'3':3003,'3*'*30+'3':617673396283947,'abs('*100+'3'+')'*100:3,'(((((((((((((((((((((3)))))))))))))))))))))':3,'12*(3-(1+(3-2*(1^1)+0*(2+2)))+4)':60,"abs(4)+pi":7,"abs(pi)":3,"¬1":0,"¬0":1,"(1+2*i)^2":-3+4j,"(1+2i)^2":-3+4j,"nthroot(1+1,64)":8}
+examples={'1+2+3+4':10,'8/4':2,'1+2+3+4/(3+1)':7,'3/(4-1)+3/(3)':2,'(3)':3,'((2))':2,'(3+2)':5,'2%':2/100,'⌊2⌋':2,"⌊2.5⌋":2,'⌈2⌉':2,"⌈2.5⌉":3,'pi':3,'∞+2':float('inf'),'∞':float('inf'),'-2':-2,'-∞':-float('inf'),'(pi)':3,'abs(-4+0)-abs(4)':0,'abs(4)':4,'abs(-4)':4,'((5))':5,'12+4':16,'12*(3-(1+1)+4)':60,'12+4.5':16.5,'12+(-4)^0.5':12+2j,'12+(-3)^0.5':12+1.7320508075688772j,'!5':44,'5++2':7,'5--2':7,'5+-2':3,'5-+2':3,'12/4':3.0,'5/3':5/3,'3^2^3':6561,'5!':120,'5-4':1,'3.4':3.4,'100%7':100%7,'100mod7':100%7,'nthroot(4,6561)':9.0,'abs(4-abs(3+2))':1,'4=4':True,'1=2':False,'1>2':False,'1<2':True,'2≥2':True,'2≤2':True,'2>2':False,'2<2':False,'2≠2':False,'2≠3':True,'3+'*10+'3':33,'3+'*100+'3':303,'3+'*200+'3':603,'3+'*141+'3':426,'3+'*1000+'3':3003,'3*'*30+'3':617673396283947,'abs('*100+'3'+')'*100:3,'(((((((((((((((((((((3)))))))))))))))))))))':3,'12*(3-(1+(3-2*(1^1)+0*(2+2)))+4)':60,"abs(4)+pi":7,"abs(pi)":3,"¬1":0,"¬0":1,"(1+2*i)^2":-3+4j,"(1+2i)^2":-3+4j,"nthroot(1+1,64)":8}
 if'__main__'==__name__:
     bbb=True
     for i,v in examples.items():
