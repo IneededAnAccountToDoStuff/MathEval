@@ -3,7 +3,7 @@ It's a safe math parser for Python &amp; Javascript. Nothing more.
 It parses math expressions, without the danger of stuff like `eval`. It supports functions, constants… [(listed below)](#features--usage)
 
 ## How can it be safe?
-The engine does not rely on `eval` functionality at all. It is a custom parser.
+The engine does not rely on `eval` functionality at all. It is a custom parser & evaluator.
 
 ### Warning
 While the parser itself is safe and completely immune to attacks, the constants and functions you provide may not be. If you give a function that is unsafe, (e.g. 
@@ -23,9 +23,13 @@ For division, `÷` and `/` can be used.
 For modulo, `mod` and `%` can be used.
 For exponentiation, `^` and `**` can be used.
 
-Comparators return their truthy values, and can be used with `<=`, `>=`, `=`, `!=`, `≥`, `≤`, `≠`, `=`, `>`, `<`.
+Comparators return their truthy values, and can be used with `<=`, `>=`, `=`, `!=`, `==`, `≥`, `≤`, `≠`, `=`, `>`, `<`.
 
-### Demo
+Native support for floor and ceiling is done through `⌊a⌋` & `⌈a⌉`
+
+Functions are objects you provide that are called. Note that a function that is a tuple object with one entry is considered a *substitution function*. They create a mini-AST that the evaluator replaces the call with. For example, `"increment":(lambda a:('+',a,'1'),)` when called with something like `"increment(1*2)"` becomes `('call','increment',('*','1','2'))`, and when run through the evaluator, when it reaches the increment, becomes `('+',('*','1','2'),'1')`
+
+### Code Examples
 ```python
 import MathEval as me
 assert me.calculate("5!+12")==120+12#Is true
